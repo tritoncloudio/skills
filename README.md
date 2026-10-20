@@ -50,7 +50,7 @@ skills/tritoncloud/
 
 ## Updating the references
 
-Everything under `references/` comes from [mariana-trench](https://github.com/TritonDataCenter/mariana-trench). A weekly workflow regenerates it and opens a pull request when it changed. It needs a `MARIANA_READ_TOKEN` secret with read access to mariana-trench and its submodules.
+Everything under `references/` comes from [mariana-trench](https://github.com/TritonDataCenter/mariana-trench). A weekly workflow regenerates it and opens a pull request when it changed. It needs a `MARIANA_READ_TOKEN` secret with read access to mariana-trench, its submodules and its private git dependencies. The token is used only to fetch; the build runs offline in a read-only job with no secrets.
 
 To run it locally (needs Rust, Python 3.10 or later, and read access to mariana-trench):
 

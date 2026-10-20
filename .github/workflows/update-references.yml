@@ -5,15 +5,17 @@ on:
     - cron: '0 9 * * 1'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 jobs:
-  update:
+  generate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -21,23 +23,55 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # mariana-trench and its manta-storage submodule are private.
-      - name: Configure access to mariana-trench
+      # The token is in this step's environment only, and nothing here runs
+      # code from mariana-trench: cargo fetch downloads without building.
+      - name: Fetch mariana-trench and its dependencies
         env:
-          MARIANA_TOKEN: ${{ secrets.MARIANA_READ_TOKEN }}
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.MARIANA_READ_TOKEN }}@github.com/TritonDataCenter/.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/TritonDataCenter/
+          CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
         run: |
-          git config --global url."https://x-access-token:${MARIANA_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git clone --quiet --depth 1 https://github.com/TritonDataCenter/mariana-trench.git "$RUNNER_TEMP/mt"
+          git -C "$RUNNER_TEMP/mt" submodule update --quiet --init --depth 1 images/triton-platform/manta-storage
+          cargo fetch --locked --manifest-path "$RUNNER_TEMP/mt/Cargo.toml"
+
+      - name: Build tritonctl
+        run: cargo install --quiet --offline --locked --root "$RUNNER_TEMP/cargo" --path "$RUNNER_TEMP/mt/cli/tritonctl"
 
       - name: Regenerate references
-        env:
-          CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
-        run: scripts/update-references.sh
+        run: |
+          python3 -m unittest discover -s tests
+          python3 scripts/generate.py --tritonctl "$RUNNER_TEMP/cargo/bin/tritonctl" --source "$RUNNER_TEMP/mt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: references
+          path: skills/tritoncloud/references
+          retention-days: 7
+
+  pull-request:
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Replace references
+        run: rm -rf skills/tritoncloud/references
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: references
+          path: skills/tritoncloud/references
 
       - name: Check for changes
         id: diff
         run: |
-          git add -N skills/
-          git diff --quiet skills/ && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+          git add -A skills/
+          git diff --cached --quiet && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Create PR
         if: steps.diff.outputs.changed == 'true'
@@ -48,7 +82,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add skills/
           git commit -m "Update references from mariana-trench"
           git push -u origin "$BRANCH"
           gh pr create \
