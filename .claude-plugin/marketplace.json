@@ -1,0 +1,16 @@
+{
+  "name": "tritoncloud",
+  "owner": {
+    "name": "Triton Cloud"
+  },
+  "metadata": {
+    "description": "Runs code in Triton Cloud sandboxes and manages Triton Cloud tenant resources with tritonctl, the sandbox SDKs and the Cloud API"
+  },
+  "plugins": [
+    {
+      "name": "tritoncloud",
+      "source": ".",
+      "description": "Runs code in Triton Cloud sandboxes and manages Triton Cloud tenant resources with tritonctl, the sandbox SDKs and the Cloud API"
+    }
+  ]
+}

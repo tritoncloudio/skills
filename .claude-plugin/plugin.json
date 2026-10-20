@@ -1,0 +1,11 @@
+{
+  "name": "tritoncloud",
+  "description": "Runs code in Triton Cloud sandboxes and manages Triton Cloud tenant resources with tritonctl, the sandbox SDKs and the Cloud API",
+  "version": "0.1.0",
+  "author": {
+    "name": "Triton Cloud"
+  },
+  "repository": "https://github.com/TritonDataCenter/tritoncloud-skills",
+  "license": "MPL-2.0",
+  "keywords": ["triton", "tritoncloud", "tritonctl", "sandbox", "skill"]
+}
