@@ -7,13 +7,13 @@ An agent skill for Triton Cloud: run code in sandboxes and manage tenant resourc
 ### Skills
 
 ```bash
-npx skills add https://github.com/TritonDataCenter/tritoncloud-skills --skill tritoncloud
+npx skills add https://github.com/tritoncloudio/skills --skill tritoncloud
 ```
 
 ### Claude Code (plugin)
 
 ```bash
-claude plugin marketplace add TritonDataCenter/tritoncloud-skills
+claude plugin marketplace add tritoncloudio/skills
 claude plugin install tritoncloud@tritoncloud --scope user
 ```
 

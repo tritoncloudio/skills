@@ -5,7 +5,7 @@
   "author": {
     "name": "Triton Cloud"
   },
-  "repository": "https://github.com/TritonDataCenter/tritoncloud-skills",
+  "repository": "https://github.com/tritoncloudio/skills",
   "license": "MPL-2.0",
   "keywords": ["triton", "tritoncloud", "tritonctl", "sandbox", "skill"]
 }
